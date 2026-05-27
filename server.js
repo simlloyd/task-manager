@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
 const taskRoutes = require('./routes/tasks');
+const authRoutes = require('./routes/auth');
 const logger = require('./middleware/logger');
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.static('public'));
 
 // Routes
 app.use('/tasks', taskRoutes);
+app.use('/auth', authRoutes);
 
 // Test route - Home
 app.get('/', (req, res) => {
