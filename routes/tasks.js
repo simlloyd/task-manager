@@ -1,12 +1,13 @@
 const express = require('express');
 const Task = require('../models/Task');
+const protect = require('../middleware/auth');
 
 const router = express.Router();
 
 // GET /tasks - Get all tasks
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const tasks = await Task.find({ user: req.user.id });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message})
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /tasks/:id - Get a single task
-router.get('/:id', async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
 
@@ -29,13 +30,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /tasks - Create a new task
-router.post('/', async (req, res) => {
+router.post('/', protect, async (req, res) => {
     if (!req.body.title || req.body.title.trim() === '') {
         return res.status(400).json({ message: 'Title is required '});
     }
 
     try {
-      const task = new Task({ title: req.body.title });
+      const task = new Task({ 
+        title: req.body.title,
+        user: req.user.id
+      });
       const saveTask = await task.save();
 
       res.status(201).json(saveTask);
@@ -45,7 +49,7 @@ router.post('/', async (req, res) => {
  });
 
 // PUT /tasks/:id - Update a task
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, async (req, res) => {
  try {
     const task = await Task.findByIdAndUpdate(
       req.params.id,
@@ -62,7 +66,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /tasks/:id - Delete a task
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
 
