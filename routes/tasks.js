@@ -10,7 +10,7 @@ router.get('/', protect, async (req, res) => {
     const tasks = await Task.find({ user: req.user.id });
     res.json(tasks);
   } catch (error) {
-    res.status(500).json({ message: error.message})
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -18,61 +18,57 @@ router.get('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-
     if (!task) {
-    return res.status(404).json({ message: 'Task not found' });
-  }
+      return res.status(404).json({ message: 'Task not found' });
+    }
     res.json(task);
-} catch (error) {
-  res.status(500).json({ message: error.message});
-}
-
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // POST /tasks - Create a new task
 router.post('/', protect, async (req, res) => {
-    if (!req.body.title || req.body.title.trim() === '') {
-        return res.status(400).json({ message: 'Title is required '});
-    }
+  if (!req.body.title || req.body.title.trim() === '') {
+    return res.status(400).json({ message: 'Title is required' });
+  }
 
-    try {
-      const task = new Task({ 
-        title: req.body.title,
-        user: req.user.id
-      });
-      const saveTask = await task.save();
-
-      res.status(201).json(saveTask);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
- });
+  try {
+    const task = new Task({
+      title: req.body.title,
+      user: req.user.id
+    });
+    const savedTask = await task.save();
+    res.status(201).json(savedTask);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // PUT /tasks/:id - Update a task
 router.put('/:id', protect, async (req, res) => {
- try {
+  try {
     const task = await Task.findByIdAndUpdate(
       req.params.id,
       req.body,
       { returnDocument: 'after' }
     );
     if (!task) {
-    return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-   res.json(task);
- } catch (error) {
-  res.status(500).json({ message: error.message });
- }
 });
 
 // DELETE /tasks/:id - Delete a task
 router.delete('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
-
-     if (!task) {
-    return res.status(404).json({ message: 'Task not found' });
-  }
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
     res.json({ message: 'Task deleted', task });
   } catch (error) {
     res.status(500).json({ message: error.message });
