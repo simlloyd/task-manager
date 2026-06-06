@@ -118,6 +118,110 @@
     .delete-btn:hover { background: #f56565; }
     .empty { text-align: center; color: #a0aec0; margin-top: 40px; }
     .hidden { display: none; }
+
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .auth-switch { text-align: center; margin-top: 16px; color: #888; font-size: 14px; }
+    .auth-switch span { color: #667eea; cursor: pointer; font-weight: 600; }
+    .subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 14px; }
+    .alert { padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: none; }
+    .alert-error { background: #ffe0e3; color: #ff4757; }
+    .dashboard { display: none; min-height: 100vh; }
+    .navbar {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 16px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo { color: white; font-size: 22px; font-weight: 700; }
+    .user-info { display: flex; align-items: center; gap: 16px; color: white; }
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .btn-logout:hover { background: rgba(255, 255, 255, alpha0.3); }
+    .main { max-width: 750px; margin: 40px auto; padding: 0 20px; }
+    .add-task-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(255, 255, 255, 0.15);
+      margin-bottom: 24px;
+    }
+    .add-task-card h2 { font-size: 18px; color: #333; margin-bottom: 16px; }
+    .add-task-card input[type="text"] {
+      width: 100%; padding: 12px 16px; border: 2px solid #eee;
+      border-radius: 10px; font-size: 15px; outline: none; margin-bottom: 12px;
+    }
+    .task-options { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .task-options select, .task-options input[type="date"] {
+      flex: 1; min-width: 140px; padding: 10px 14px;
+      border: 2px solid #eee; border-radius: 10px; font-size: 14px; outline: none; background: white;
+    }
+    .btn-add {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    .filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 8px 18px; border-radius: 20px;
+      border: 2px solid rgba(0,0,0,0.5);
+      background: rgba(255, 255, 255, 0.15);
+      color: white; cursor: pointer; font-size: 13px; font-weight: 600; 
+    }
+    .filter-btn.active, .filter-btn:hover { background: white; color: #667eea; border-color: white; }
+    .task-card {
+      background: white; border-radius: 16px; padding: 18px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex; align-items: center; gap: 14px;
+      border-left: 5px solid #ddd; margin-bottom: 12px;
+    }
+    .task-card.priority-high { border-left-color: #ff4757; }
+    .task-card.priority-medium { border-left-color: #ffa502; }
+    .task-card.priority-low { border-left-color: #2ed573; }
+    .task-card.completed { opacity: 0.6; }
+    .task-info { flex: 1; }
+    .task-title { font-size: 15px; color: #333; font-weight: 500; }
+    .task-card.completed .task-title { text-decoration: line-through; color: #aaa; }
+    .task-meta { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .badge-high { background: #ffe0e3; color: #ff4757; }
+    .badge-medium { background: #fff3cd; color: #667eea; }
+    .badge-low { background: #d4f8e8; color: #1e8449; }
+    .due-date { font-size: 12px; color: #888; }
+    .due-date.overdue { color: #ff4757; font-weight: 600; }
+    .btn-delete {
+      background: #ffe0e3; color: #ff4757; border: none;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+    }
+    .btn-delete:hover { background: #ff4757; color: white; }
+    .empty-state { text-align: center; color: rgba(0,0,0,0.8); padding: 40px; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
   </style>
 </head>
 <body>
@@ -132,7 +236,7 @@
          <input type="email" id="emailField" placeholder="Email" />
          <input type="password" id="passwordField" placeholder="Password" />
          <button class="btn-primary" onclick="submitAuth()"> Sign In</button>
-         <div class="auth-switch">
+         <div class="auth-switch"> 
           <span id="authSwitchText">Don't have an account? <span onclick="toggleAuth()">Register</span></span>
          </div> 
       </div>
