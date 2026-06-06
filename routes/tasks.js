@@ -7,7 +7,7 @@ const router = express.Router();
 // GET /tasks - Get all tasks
 router.get('/', protect, async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.user.id });
+    const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -36,6 +36,8 @@ router.post('/', protect, async (req, res) => {
   try {
     const task = new Task({
       title: req.body.title,
+      priority: req.body.priority || 'medium',
+      dueDate: req.body.dueDate || null,
       user: req.user.id
     });
     const savedTask = await task.save();

@@ -6,11 +6,11 @@
   <title>Task Manager</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      padding: 40px 20px;
     }
     .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; color: #2d3748; margin-bottom: 30px; font-size: 2rem; }
@@ -121,73 +121,99 @@
   </style>
 </head>
 <body>
-  <div class="container">
 
     <!-- Auth Section -->
-    <div id="authSection">
-      <h1>📝 Task Manager</h1>
+    <div class="auth-container" id="authContainer">
       <div class="auth-box">
-        <h2 id="authTitle">Login</h2>
-        <p class="error" id="authError"></p>
-        <input type="text" id="usernameInput" placeholder="Username" class="hidden" />
-        <input type="email" id="emailInput" placeholder="Email" />
-        <input type="password" id="passwordInput" placeholder="Password" />
-        <button onclick="submitAuth()">Submit</button>
-        <p class="switch" onclick="toggleAuth()">Don't have an account? Register</p>
+         <h1>📝 Task Manager</h1>
+         <p class="subtitle" id="authSubtitle">Sign in to your account</p>
+         <div class="alert alert-error" id="authAlert"></div>
+         <input type="text" id="nameField" placeholder="Full Name" style="display: none" />
+         <input type="email" id="emailField" placeholder="Email" />
+         <input type="password" id="passwordField" placeholder="Password" />
+         <button class="btn-primary" onclick="submitAuth()"> Sign In</button>
+         <div class="auth-switch">
+          <span id="authSwitchText">Don't have an account? <span onclick="toggleAuth()">Register</span></span>
+         </div> 
       </div>
     </div>
 
-    <!-- App Section -->
-    <div id="appSection" class="hidden">
-      <div class="app-header">
-        <h1>📝 Task Manager</h1>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+      <div class="navbar">
+        <div class="logo">📝 Task Manager</div>
+        <div class="user-info">
+          <span id="welcomeText"></span>
+          <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
       </div>
-      <p class="welcome" id="welcomeMsg"></p>
-      <div class="add-task">
-        <input type="text" id="taskInput" placeholder="Add a new task...." />
-        <button onclick="addTask()">Add</button>
+
+      <div class="main">
+        <!-- Add Task -->
+         <div class="add-task-card">
+            <h2>✨ Add New Task</h2>
+            <input type="text" id="taskTitle" placeholder="What needs to be done?" />
+            <div class="task-options">
+              <select name="" id="taskPriority">
+                  <option value="medium">🟡 Medium Priority</option>
+                  <option value="high">🔴 High Priority</option>
+                  <option value="low">🟢 Low Priority</option>
+              </select>
+                <input type="date" id="taskDueDate" />
+            </div>
+            <button class="btn-add" onclick="addTask()">+ Add Task</button>
+         </div>
+
+         <!-- Filters -->
+          <div class="Filters">
+            <button class="filter-btn active" onclick="filterTasks('all', this)">All</button>
+            <button class="filter-btn" onclick="filterTasks('high', this)">🔴 High</button>
+            <button class="filter-btn" onclick="filterTasks('medium', this)">🟡 Medium</button>
+            <button class="filter-btn" onclick="filterTasks('low', this)">🟢 Low</button>
+            <button class="filter-btn" onclick="filterTasks('completed', this)">✅ Completed</button>
+          </div>
+
+          <!-- Task List -->
+           <div class="task-list" id="taskList"></div>
       </div>
-      <div class="task-list" id="taskList"></div>
     </div>
 
-  </div>
+  
 
   <script>
-    const API = '/tasks';
-    const AUTH = '/auth';
-    let isLogin = true;
+    const API = '';
     let token = localStorage.getItem('token');
-    let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    let username = localStorage.getItem('username');
+    let allTasks = [];
+    let isLogin = true;
 
     // Check if already logged in
-    if (token) showApp();
+    if (token) showDashboard();
 
     function toggleAuth() {
       isLogin = !isLogin;
-      document.getElementById('authTitle').textContent = isLogin ? 'Login' : 'Register';
-      document.getElementById('usernameInput').classList.toggle('hidden', isLogin);
-      document.querySelector('.switch').textContent = isLogin
-        ? "Don't have an account? Register"
-        : "Already have an account? Login";
-      document.getElementById('authError').textContent = '';
+      document.getElementById('nameField').style.display = isLogin ? 'none' : 'block';
+      document.getElementById('authSubtitle').textContent = isLogin ? 'Sign in to your account' : 'Create a new account';
+      document.getElementById('authSwitchText').innerHTML = isLogin
+      ? 'Don\'t have an account? <span onclick="toggleAuth()">Register</span>'
+      : 'Already have an account? <span onclick="toggleAuth()">Sign In</span>';
+      document.querySelector('.btn-primary').textContent = isLogin ? 'Sign In' : 'Register';
     }
 
     async function submitAuth() {
-      const email = document.getElementById('emailInput').value.trim();
-      const password = document.getElementById('passwordInput').value.trim();
-      const username = document.getElementById('usernameInput').value.trim();
+      const email = document.getElementById('emailField').value.trim();
+      const password = document.getElementById('passwordField').value.trim();
+      const name = document.getElementById('nameField').value.trim();
+      const alert = document.getElementById('authAlert');
 
-      if (!email || !password || (!isLogin && !username)) {
-        document.getElementById('authError').textContent = 'Please fill in all fields!';
-        return;
-      }
+      if (!email || !password) return showAlert(alert, 'Please fill in all fields.');
+      if (!isLogin && !name) return showAlert(alert, 'Please enter your name. ');
 
-      const endpoint = isLogin ? `${AUTH}/login` : `${AUTH}/register`;
-      const body = isLogin ? { email, password } : { username, email, password };
+      const url = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const body = isLogin ? { email, password } : { name, email, password };
 
       try {
-        const res = await fetch(endpoint, {
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
@@ -195,116 +221,141 @@
 
         const data = await res.json();
 
-        if (!res.ok) {
-          document.getElementById('authError').textContent = data.message;
-          return;
-        }
-
+        if (!res.ok) return showAlert(alert, data.message || 'Something went wrong. ');
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('username', data.user?.name || email.split('@')[0]);
         token = data.token;
-        currentUser = data.user;
-        showApp();
+        username = localStorage.getItem('username');
+        showDashboard();
 
       } catch (err) {
-        document.getElementById('authError').textContent = 'Something went wrong!';
+        showAlert(alert, 'Server error. Please try again. ');
       }
     }
 
-    function showApp() {
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('appSection').classList.remove('hidden');
-      document.getElementById('welcomeMsg').textContent = `Welcome back, ${currentUser?.username || 'User'}! 👋`;
+    function showDashboard() {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('welcomeText').textContent = `Welcome back, ${username}! 👋`;
       loadTasks();
     }
 
     function logout() {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      token = null;
-      currentUser = null;
-      document.getElementById('authSection').classList.remove('hidden');
-      document.getElementById('appSection').classList.add('hidden');
-      document.getElementById('emailInput').value = '';
-      document.getElementById('passwordInput').value = '';
+      localStorage.removeItem('username');
+      location.reload();
     }
 
     async function loadTasks() {
       try {
-        const res = await fetch(API, {
+        const res = await fetch('/api/tasks', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const tasks = await res.json();
-        const list = document.getElementById('taskList');
+        allTasks = await res.json();
+        renderTasks(allTasks);
 
-        if (tasks.length === 0) {
-          list.innerHTML = '<p class="empty">No tasks yet. Add one above!</p>';
-          return;
-        }
-
-        list.innerHTML = tasks.map(task => `
-          <div class="task-item">
-            <input type="checkbox"
-              ${task.completed ? 'checked' : ''}
-              onchange="toggleTask('${task._id}', this.checked)"
-            />
-            <span class="task-title ${task.completed ? 'completed' : ''}">
-              ${task.title}
-            </span>
-            <button class="delete-btn" onclick="deleteTask('${task._id}')">Delete</button>
-          </div>
-        `).join('');
       } catch (err) {
-        console.error('Error loading tasks:', err);
+        console.error(err);
       }
     }
 
     async function addTask() {
-      const input = document.getElementById('taskInput');
-      const title = input.value.trim();
-      if (!title) { alert('Please enter a task!'); return; }
+      const title = document.getElementById('taskTitle').value.trim();
+      const priority = document.getElementById('taskPriority').value;
+      const dueDate = document.getElementById('taskDueDate').value;
+      if (!title) return; 
 
-      await fetch(API, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title })
-      });
-
-      input.value = '';
-      loadTasks();
+      try {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ title, priority, dueDate: dueDate || null })
+        });
+        const task = await res.json();
+        allTasks.unshift(task);
+        renderTasks(allTasks);
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDueDate').value = '';
+        document.getElementById('taskPriority').value = 'medium';
+      } catch (err) {
+        console.log(err);
+      }
     }
 
-    async function toggleTask(id, completed) {
-      await fetch(`${API}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ completed })
-      });
-      loadTasks();
+    async function toggleComplete(id, completed) {
+      try {
+        const res = await fetch(`/api/tasks/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ completed: !completed })
+        });
+        const updated = await res.json();
+        allTasks = allTasks.map(t => t._id === id ? updated : t);
+        renderTasks(allTasks);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     async function deleteTask(id) {
-      await fetch(`${API}/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      loadTasks();
+      try {
+        await fetch(`/api/tasks/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        allTasks = allTasks.filter(t => t._id !== id);
+        renderTasks(allTasks);
+      } catch (err) {
+        console.error(err);
+      }
+      
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('taskInput')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addTask();
-      });
-      document.getElementById('passwordInput')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') submitAuth();
-      });
+    function filterTasks(type, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (type === 'all') return renderTasks(allTasks);
+      if (type === 'completed') return renderTasks(allTasks.filter(t => t.completed));
+      renderTasks(allTasks.filter(t => t.priority === type && !t.completed));
+    }
+
+    function renderTasks(tasks) {
+      const list = document.getElementById('taskList');
+      if (!tasks.length) {
+        list.innerHTML = `<div class="empty-state"><div class="icon">🎉</div><p>No Tasks here!</p></div>`;
+        return;
+      }
+      list.innerHTML = tasks.map(task => {
+        const due = task.dueDate ? new Date(task.dueDate) : null;
+        const isOverdue = due && due < new Date() && !task.completed;
+        const dueDateStr = due ? `<span class="due-date ${isOverdue ? 'overdue' : ''}">📅 ${due.toLocaleDateString()}</span>` : '';
+        return `
+        <div class="task-card priority-${task.priority} ${task.completed ? 'completed' : ''}">
+          <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete('${task._id}', ${task.completed})"/>
+          <div class="task-info">
+            <div class="task-title">${task.title}</div>
+            <div class="task-meta">
+              <span class="badge badge-${task.priority}">${task.priority}</span>
+              ${dueDateStr}
+              </div>
+              </div>
+              <button class="btn-delete" onclick="deleteTask('${task._id}')">Delete</button>
+              </div>`;
+      }).join('');
+    }
+
+    function showAlert(el, msg) {
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    document.addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('dashboard').style.display === 'block') addTask();
+        else submitAuth();
+      }
     });
   </script>
 </body>
-</html>
+</html> 
